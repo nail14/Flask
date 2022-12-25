@@ -1,4 +1,2 @@
-def views():
-    return None
 
 
