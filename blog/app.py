@@ -1,73 +1,82 @@
-from time import time
 from flask import Flask
 
-from blog.article.view import article
-from blog.user.views import user
-from blog.report.views import report
-# from flask import Flask, g
-from flask import request
-
-# создание приложения
+from blog import commands
+from blog.extensions import db, login_manager
+from blog.models import User
 
 
 def create_app() -> Flask:
     app = Flask(__name__)
+    app.config.from_object('blog.config')
+    app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+    app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///db.sqlite"
+    register_extensions(app)
     register_blueprints(app)
+    register_commands(app)
     return app
 
 
+def register_extensions(app):
+    db.init_app(app)
+
+    login_manager.login_view = 'auth.login'
+    login_manager.init_app(app)
+
+    @login_manager.user_loader
+    def load_user(user_id):
+        return User.query.get(int(user_id))
+
+
 def register_blueprints(app: Flask):
+    from blog.auth.views import auth
+    from blog.user.views import user
+
     app.register_blueprint(user)
-    app.register_blueprint(report)
-    app.register_blueprint(article)
+    app.register_blueprint(auth)
 
-# app = Flask(__name__)
-#
-#
-# @app.route('/')
-# def index2():
-#     return 'Hello web!'
-#
-#
-# if __name__ == '__main__':
-#     app.run()
-#
-#
-# @app.route('/greet/<name>/')
-# def index(name: str):
-#     return f"Hello {name}!"
 
-###################################################
-# @app.route('/<string:search>', method=['GET','POST'])
-# def index(search: str):
-#     name = request.args.get('search', None)
-#     return f"Hello {request.method}!"
+def register_commands(app: Flask):
+    app.cli.add_command(commands.init_db)
+    app.cli.add_command(commands.create_init_user)
 
-# @app.route("/greet/<name>/")
-# def greet_name(name: str):
-# return f"Hello {name}!"
-###################################################
 
-# @app.errorhandler(404)
-# def handler_404(error):
-#     app.logger.error(error)
-#     return 'ОШИБКА 404'
+# from time import time
+# from flask_sqlalchemy import SQLAlchemy
+# from flask import Flask
+#
+# from blog import auth
+# from blog.article.view import article
+# from blog.user.views import user
+# from blog.report.views import report
+# # from flask import Flask, g
+# from flask import request
 #
 #
-# @app.before_request
-# def process_before_request():
-#     """
-#     Sets start_time to `g` object
-#     """
-#     g.start_time = time()
+# # создание приложения
 #
 #
-# @app.after_request
-# def process_after_request(response):
-#     """
-#     adds process time in headers
-#     """
-#     if hasattr(g, "start_time"):
-#         response.headers["process-time"] = time() - g.start_time
+# db = SQLAlchemy()
+# # __all__ = [
+# #     "db",
+# # ]
 #
-#     return response
+#
+# def create_app() -> Flask:
+#     app = Flask(__name__)
+#     app.config['SECRET_KEY'] = 'kwMhCoA7An6VtLzSkNOrVCpChSOIJ681'
+#     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+#     app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///db.sqlite"
+#
+#     db.init_app(app)
+#
+#     # from .models import User, Article
+#
+#     register_blueprints(app)
+#     return app
+#
+#
+# def register_blueprints(app: Flask):
+#     app.register_blueprint(user)
+#     app.register_blueprint(report)
+#     app.register_blueprint(auth)
+#     app.register_blueprint(article)
