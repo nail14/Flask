@@ -1,18 +1,7 @@
-
 import click
 from werkzeug.security import generate_password_hash
 
 from blog.extensions import db
-
-
-@click.command('init-db')
-def init_db():
-    from wsgi import app
-
-    # import models for creating tables
-    from blog.models import User
-
-    db.create_all(app=app)
 
 
 @click.command('create-init-user')
