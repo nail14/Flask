@@ -1,7 +1,6 @@
 from combojsonapi.permission import PermissionMixin, PermissionForGet, PermissionUser, PermissionForPatch
 from flask_combo_jsonapi.exceptions import AccessDenied
 from flask_login import current_user
-
 from blog.models import User
 
 
